@@ -53,25 +53,32 @@ void MotorSetup()
 
 void MotorGoHome()
 {
-  int CurrentPos = 0;
+  long CurrentPos = 0;
   Home_Done = false;
-  Serial.println("Finding Home...");
+  DBG_PRINTLN("Finding Home...");
   motor.setCurrentPosition(0);
   motor.setMaxSpeed(HOME_SPEED_STEPS);
-  while (digitalRead(HOM_PIN) == HIGH)
+  unsigned long tempoMaximoGoHome = millis() + 20000UL; //tempo máximo para ir para o home, se não chegar reinicia
+  while ((digitalRead(HOM_PIN) == HIGH)&&(millis() < tempoMaximoGoHome))
   {
     CurrentPos = CurrentPos - HOME_INCREMENT_STEP;
     motor.runToNewPosition(CurrentPos);
     wdt_reset();
   }
-  motor.setCurrentPosition(0);
-  motor.runToNewPosition(HOME_PRESS_POSITION_STEP);
-  motor.setCurrentPosition(0);
-  Serial.println("Home OK.");
-  Home_Done = true;
+  if (digitalRead(HOM_PIN) == HIGH) {
+    DBG_PRINTLN(F("Não chegou em Home, reiniciando..."));
+    while (1);
+  } else {
+    motor.setCurrentPosition(0);
+    motor.runToNewPosition(HOME_PRESS_POSITION_STEP);
+    motor.setCurrentPosition(0);
+    DBG_PRINTLN("Home OK.");
+    Home_Done = true;
+  }
 }
 
 void(* resetFunc) (void) = 0; //declare reset function @ address 0
+
 void MotorLoop()
 {
   if ((digitalRead(HOM_PIN) == LOW) && (Home_Done)) while (1);
@@ -83,7 +90,7 @@ void MotorLoop()
 
 float MotorGetCurrentPos_mm()
 {
-  return (motor.currentPosition() /  STEPS_by_REV) * mm_by_REV;
+  return ((float)motor.currentPosition() /  STEPS_by_REV) * mm_by_REV;
 }
 
 
@@ -149,22 +156,12 @@ void MotorSetAccel(float Accel_mms2)
 
 bool MotorIsOnMaxPosition()
 {
-  bool IsOnMax;
-  if (motor.currentPosition() >= MAX_POS_STEP)
-    IsOnMax = true;
-  else
-    IsOnMax = false;
-  return IsOnMax;
+  return (motor.currentPosition() >= MAX_POS_STEP);
 }
 
 bool MotorIsOnStartPosition()
 {
-  bool IsOnMin;
-  if (motor.currentPosition() <= 0)
-    IsOnMin = true;
-  else
-    IsOnMin = false;
-  return IsOnMin;
+  return (motor.currentPosition() <= 0);
 }
 
 void MotorSet_InsNewPosition_mm(float MotorNewPosition_mm, float dt)
@@ -182,5 +179,3 @@ void MotorGoExp_SpeedMode()
 {
   MotorGo2StartPos_SpeedMode(EXP_SPEED_STEP);
 }
-
-

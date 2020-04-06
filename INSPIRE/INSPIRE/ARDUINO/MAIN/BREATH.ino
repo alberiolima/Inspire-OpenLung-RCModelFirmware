@@ -1,4 +1,5 @@
 #include "TimerOne.h"
+#include "debug.h"
 
 //Inicial Breath parameters
 #define R_cmH2O_LPS_0 50
@@ -117,34 +118,34 @@ void BreathLoop()
       W4 = W1 / W2;
       W5 = W3 / W2;
       W6 = W1 * tPlat_s  + W4 * (1 - exp(W2 * tPlat_s)) - W5 * exp(W2 * tPlat_s);
-      Serial.println("NEW CYCLE START" );
-      Serial.print("Sensor Pressure cmH2O=" ); Serial.println(PressureGet_cmH2O());
-      Serial.print("InsMaxTime=" ); Serial.println(InsMaxTime_s);
-      Serial.print("CycleMaxTime_s=" ); Serial.println(CycleMaxTime_s);
-      Serial.print("Pplat_cmH2O=" ); Serial.println(Pplat_cmH2O);
-      Serial.print("Ppeep_cmH2O=" ); Serial.println(Ppeep_cmH2O);
-      Serial.print("Pplat_correction_cmH2O=" ); Serial.println(Pplat_correction_cmH2O);
-      Serial.print("tPlat_s=" ); Serial.println(tPlat_s);
-      Serial.print("R_cmH2O_L_s=" ); Serial.println(R_cmH2O_L_s);
-      Serial.print("C_L_cmH2O=" ); Serial.println(C_L_cmH2O);
-      Serial.print("RespiRate_BPM=" ); Serial.println(RespiRate_BPM);
-      Serial.print("W1=" ); Serial.println(W1);
-      Serial.print("W2=" ); Serial.println(W2);
-      Serial.print("W3=" ); Serial.println(W3);
-      Serial.print("P0_cmH2O=" ); Serial.println(P0_cmH2O);
-      Serial.print("F0_Ls=" ); Serial.println(F0_Ls);
-      Serial.print("V0_L=" ); Serial.println(V0_L);
-      Serial.print("P1_cmH2O=" ); Serial.println(P1_cmH2O);
-      Serial.print("F1_Ls=" ); Serial.println(F1_Ls);
-      Serial.print("V1_L=" ); Serial.println(V1_L);
-      Serial.print("P2_cmH2O=" ); Serial.println(P2_cmH2O);
-      Serial.print("F2_Ls=" ); Serial.println(F2_Ls);
-      Serial.print("V2_L=" ); Serial.println(V2_L);
-      Serial.print("dt=" ); Serial.println(dt);
+      DBG_PRINTLN("NEW CYCLE START" );
+      DBG_PRINT("Sensor Pressure cmH2O=" ); DBG_PRINTLN(PressureGet_cmH2O());
+      DBG_PRINT("InsMaxTime=" ); DBG_PRINTLN(InsMaxTime_s);
+      DBG_PRINT("CycleMaxTime_s=" ); DBG_PRINTLN(CycleMaxTime_s);
+      DBG_PRINT("Pplat_cmH2O=" ); DBG_PRINTLN(Pplat_cmH2O);
+      DBG_PRINT("Ppeep_cmH2O=" ); DBG_PRINTLN(Ppeep_cmH2O);
+      DBG_PRINT("Pplat_correction_cmH2O=" ); DBG_PRINTLN(Pplat_correction_cmH2O);
+      DBG_PRINT("tPlat_s=" ); DBG_PRINTLN(tPlat_s);
+      DBG_PRINT("R_cmH2O_L_s=" ); DBG_PRINTLN(R_cmH2O_L_s);
+      DBG_PRINT("C_L_cmH2O=" ); DBG_PRINTLN(C_L_cmH2O);
+      DBG_PRINT("RespiRate_BPM=" ); DBG_PRINTLN(RespiRate_BPM);
+      DBG_PRINT("W1=" ); DBG_PRINTLN(W1);
+      DBG_PRINT("W2=" ); DBG_PRINTLN(W2);
+      DBG_PRINT("W3=" ); DBG_PRINTLN(W3);
+      DBG_PRINT("P0_cmH2O=" ); DBG_PRINTLN(P0_cmH2O);
+      DBG_PRINT("F0_Ls=" ); DBG_PRINTLN(F0_Ls);
+      DBG_PRINT("V0_L=" ); DBG_PRINTLN(V0_L);
+      DBG_PRINT("P1_cmH2O=" ); DBG_PRINTLN(P1_cmH2O);
+      DBG_PRINT("F1_Ls=" ); DBG_PRINTLN(F1_Ls);
+      DBG_PRINT("V1_L=" ); DBG_PRINTLN(V1_L);
+      DBG_PRINT("P2_cmH2O=" ); DBG_PRINTLN(P2_cmH2O);
+      DBG_PRINT("F2_Ls=" ); DBG_PRINTLN(F2_Ls);
+      DBG_PRINT("V2_L=" ); DBG_PRINTLN(V2_L);
+      DBG_PRINT("dt=" ); DBG_PRINTLN(dt);
       StateMachine = STATE_INS_FLUX_START;
       break;
     case STATE_INS_FLUX_START:
-      Serial.println("STATE_INS_FLUX_START");
+      DBG_PRINTLN("STATE_INS_FLUX_START");
       MotorGo2MaxPos_SpeedMode(0);
       IsInsTimerOn = true;
       StateMachine = STATE_INS_FLUX_END;
@@ -153,13 +154,13 @@ void BreathLoop()
     case STATE_INS_FLUX_END:
       if (IsInsTimerOn == false)
       {
-        Serial.println("STATE_INS_FLUX_END");
+        DBG_PRINTLN("STATE_INS_FLUX_END");
         StateMachine = STATE_EX_FLUX_START;
       }
       break;
 
     case STATE_EX_FLUX_START:
-      Serial.println("STATE_EX_FLUX_START");
+      DBG_PRINTLN("STATE_EX_FLUX_START");
       MotorGoExp_AccelMode();
       StateMachine = STATE_EX_FLUX_END;
       Ppeep_cmH2O = 0;
@@ -169,10 +170,10 @@ void BreathLoop()
     case STATE_EX_FLUX_END:
       if (MotorIsOnStartPosition() && BreathIsCycleTimeEnd())
       {
-        Serial.println("STATE_EX_FLUX_END");
+        DBG_PRINTLN("STATE_EX_FLUX_END");
         //BreathAdjustPplat();
         StateMachine = STATE_START_CYCLE;
-        Serial.println("...");
+        DBG_PRINTLN("...");
         Ppeep_cmH2O = Ppeep_cmH2O / (float)(PeepMeanSamples_samples);
       }
       break;
@@ -186,7 +187,7 @@ void BreathLoop()
 void BreathTimer()
 {
   CycleTime = CycleTime + dt;
-  Serial.print(millis());Serial.print(",");Serial.println(VOut_L);
+  DBG_PRINT(millis());DBG_PRINT(",");DBG_PRINTLN(VOut_L);
   //Pplat adjust
   if (CycleTime >= 0.9 * CycleMaxTime_s)
   {
@@ -256,14 +257,14 @@ void BreathTimer()
 void BreathAdjustPplat()
 {
   CyclePlatPress_cmH2O = CyclePlatPress_cmH2O / ((float) CyclePlatPress_samples);
-  Serial.print("CyclePlatPress_samples=" ); Serial.println(CyclePlatPress_samples);
-  Serial.print("CyclePlatPressure_cmH2O=" ); Serial.println(CyclePlatPress_cmH2O);
+  DBG_PRINT("CyclePlatPress_samples=" ); DBG_PRINTLN(CyclePlatPress_samples);
+  DBG_PRINT("CyclePlatPressure_cmH2O=" ); DBG_PRINTLN(CyclePlatPress_cmH2O);
   float PplatError = CyclePlatPress_cmH2O - Pplat_cmH2O;
   float Adjust = PplatError * CONTROL_PPLAT_COEFF;
   if (abs(Adjust) > CONTROL_PPLAT_MAX_DP_cmH2O)
     Adjust = (Adjust / abs(Adjust)) * CONTROL_PPLAT_MAX_DP_cmH2O;
-  Serial.print("Adjust Pplat=");
-  Serial.println(Adjust);
+  DBG_PRINT("Adjust Pplat=");
+  DBG_PRINTLN(Adjust);
   Pplat_correction_cmH2O = Pplat_correction_cmH2O + Adjust;
 }
 
@@ -275,16 +276,16 @@ void BreathAdjustRC()
   float dP1 = P2_cmH2O - P1_cmH2O;
   float dF0 = F1_Ls - F0_Ls;
   float dF1 = F2_Ls - F1_Ls;
-  Serial.print("dV0  = "); Serial.println(dV0 );
-  Serial.print("dV1 = "); Serial.println(dV1);
-  Serial.print("dP0  = "); Serial.println(dP0 );
-  Serial.print("dP1 = "); Serial.println(dP1);
-  Serial.print("dF0  = "); Serial.println(dF0 );
-  Serial.print("dF1 = "); Serial.println(dF1);
+  DBG_PRINT("dV0  = "); DBG_PRINTLN(dV0 );
+  DBG_PRINT("dV1 = "); DBG_PRINTLN(dV1);
+  DBG_PRINT("dP0  = "); DBG_PRINTLN(dP0 );
+  DBG_PRINT("dP1 = "); DBG_PRINTLN(dP1);
+  DBG_PRINT("dF0  = "); DBG_PRINTLN(dF0 );
+  DBG_PRINT("dF1 = "); DBG_PRINTLN(dF1);
   float Rest_cmH2O_Ls = ((dV0 * dP1) - (dV1 * dP0)) / ((dV0 * dF1) - (dV1 * dF0));
-  Serial.print("Rest_cmH2O_Ls = "); Serial.println(Rest_cmH2O_Ls);
+  DBG_PRINT("Rest_cmH2O_Ls = "); DBG_PRINTLN(Rest_cmH2O_Ls);
   float Cest_L_cmH2O = dV0 / (dP0 - (Rest_cmH2O_Ls * dF0));
-  Serial.print("Cest_L_cmH2O = "); Serial.println(Cest_L_cmH2O);
+  DBG_PRINT("Cest_L_cmH2O = "); DBG_PRINTLN(Cest_L_cmH2O);
 }
 
 bool BreathIsCycleTimeEnd()
